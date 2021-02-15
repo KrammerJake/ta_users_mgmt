@@ -19,7 +19,7 @@ import ax from "packs/axios";
 import React, { useCallback, useState } from "react";
 import validator from "validator";
 
-const CreateUserButtonWithModal = () => {
+const CreateUserButtonWithModal = ({ setUsers, users }) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
 
   const [name, setName] = useState("");
@@ -43,7 +43,14 @@ const CreateUserButtonWithModal = () => {
   const onSubmit = useCallback(async () => {
     setIsSubmitting(true);
     try {
-      await ax.post("/users", { name, email, title, phone, status });
+      const { data: newUser } = await ax.post("/users", {
+        name,
+        email,
+        title,
+        phone,
+        status,
+      });
+      setUsers([newUser, ...users]);
       setIsSubmitting(false);
       clearData();
       onClose();
@@ -52,7 +59,7 @@ const CreateUserButtonWithModal = () => {
       console.log("An error occurred while creating new user: ", e);
       setIsSubmitting(false);
     }
-  }, [name, email, title, phone, status]);
+  }, [name, email, title, phone, status, users]);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const canSubmit =

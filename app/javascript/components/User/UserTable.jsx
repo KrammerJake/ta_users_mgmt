@@ -24,12 +24,7 @@ const UserRow = ({ user }) => {
       <Td color={status === "active" ? "green.500" : "red.500"}>{status}</Td>
       <Td>
         <Flex>
-          <IconButton
-            colorScheme="teal"
-            aria-label="Edit user"
-            size="md"
-            icon={<EditIcon />}
-          />
+          <IconButton aria-label="Edit user" size="md" icon={<EditIcon />} />
           <IconButton
             ml={2}
             colorScheme="red"
@@ -45,7 +40,7 @@ const UserRow = ({ user }) => {
 
 const UserTable = ({ users }) => {
   return (
-    <Table variant="simple">
+    <Table>
       <Thead>
         <Tr>
           <Th>Last Updated</Th>
