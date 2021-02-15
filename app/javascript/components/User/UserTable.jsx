@@ -1,4 +1,17 @@
-import { Badge, Flex, Table, Tbody, Td, Th, Thead, Tr } from "@chakra-ui/react";
+import {
+  Badge,
+  Box,
+  Button,
+  Flex,
+  HStack,
+  Table,
+  Tbody,
+  Td,
+  Text,
+  Th,
+  Thead,
+  Tr,
+} from "@chakra-ui/react";
 import { formatDistance } from "date-fns";
 import * as R from "ramda";
 import React, { useCallback, useMemo, useState } from "react";
@@ -6,7 +19,6 @@ import { connect } from "react-redux";
 import ax from "packs/axios";
 import ConfirmDeleteDialog from "../Dialogs/ConfirmDeleteDialog";
 import EditUserButtonWithModal from "../Modals/EditUserButtonWithModal";
-import { getUsers } from "../../redux/domains/App/AppSelectors";
 import { userDeleted } from "../../redux/domains/App/AppActions";
 import { TriangleDownIcon, TriangleUpIcon } from "@chakra-ui/icons";
 
@@ -15,7 +27,7 @@ const getSortArrowIcon = (direction) => {
 };
 
 const mapStateToProps = (state) => ({
-  users: getUsers(state),
+  users: state.app.users,
 });
 const mapDispatchToProps = (dispatch) => ({
   deleteUser: (userId) => dispatch(userDeleted(userId)),
@@ -36,7 +48,10 @@ const UserRow = ({ user, deleteUser }) => {
   const lastUpdatedString = formatDistance(new Date(updated_at), new Date());
   const recentlyUpdated = lastUpdatedString === "less than a minute";
   return (
-    <Tr boxShadow={recentlyUpdated ? "0px 1px 5px 1px blue" : undefined}>
+    <Tr
+      borderLeft={recentlyUpdated ? "4px solid green" : undefined}
+      _hover={{ bg: "gray.700" }}
+    >
       <Td>{lastUpdatedString}</Td>
       <Td>{name}</Td>
       <Td>{email}</Td>
@@ -71,12 +86,17 @@ const DEFAULT_SORT_CONFIG = {
 
 const UserTable = ({ users, deleteUser }) => {
   const [sortConfig, setSortConfig] = useState(DEFAULT_SORT_CONFIG);
+  const [page, setPage] = useState(1);
+  const perPage = 25;
+  const lastPage = Math.floor(users.length / perPage);
 
   const requestSort = (key) => {
     let direction = "ascending";
     if (sortConfig.key === key && sortConfig.direction === "ascending") {
       direction = "descending";
     }
+    // Changing the sort will reset the pagination
+    setPage(1);
     setSortConfig({ key, direction });
   };
 
@@ -103,41 +123,68 @@ const UserTable = ({ users, deleteUser }) => {
     return null;
   };
 
+  const paginationControls = (
+    <Flex flexDir="column" alignItems="center" justifyContent="center" my={1}>
+      <Text>Page {page}</Text>
+      <HStack spacing={5}>
+        <Button
+          disabled={page === 1}
+          onClick={page > 0 ? () => setPage(page - 1) : undefined}
+        >
+          Prev
+        </Button>
+        <Button
+          disabled={page === lastPage}
+          onClick={page < lastPage ? () => setPage(page + 1) : undefined}
+        >
+          Next
+        </Button>
+      </HStack>
+    </Flex>
+  );
+
+  const startIndex = page === 1 ? 0 : perPage * page;
+  const endIndex = startIndex + perPage;
+
   return (
-    <Table>
-      <Thead>
-        <Tr>
-          <Th cursor="pointer" onClick={() => requestSort("updated_at")}>
-            Last Updated {maybeSortIcon("updated_at")}
-          </Th>
-          <Th cursor="pointer" onClick={() => requestSort("name")}>
-            Name {maybeSortIcon("name")}
-          </Th>
-          <Th cursor="pointer" onClick={() => requestSort("email")}>
-            Email {maybeSortIcon("email")}
-          </Th>
-          <Th cursor="pointer" onClick={() => requestSort("title")}>
-            Title {maybeSortIcon("title")}
-          </Th>
-          <Th cursor="pointer" onClick={() => requestSort("phone")}>
-            Phone {maybeSortIcon("phone")}
-          </Th>
-          <Th cursor="pointer" onClick={() => requestSort("status")}>
-            Status {maybeSortIcon("status")}
-          </Th>
-          <Th>Actions</Th>
-        </Tr>
-      </Thead>
-      <Tbody>
-        {R.take(25, sortedUsers).map((user) => (
-          <UserRow
-            key={`${user.id}-${user.email}`}
-            user={user}
-            deleteUser={deleteUser}
-          />
-        ))}
-      </Tbody>
-    </Table>
+    <Box pb={20}>
+      {paginationControls}
+      <Table>
+        <Thead>
+          <Tr>
+            <Th cursor="pointer" onClick={() => requestSort("updated_at")}>
+              Last Updated {maybeSortIcon("updated_at")}
+            </Th>
+            <Th cursor="pointer" onClick={() => requestSort("name")}>
+              Name {maybeSortIcon("name")}
+            </Th>
+            <Th cursor="pointer" onClick={() => requestSort("email")}>
+              Email {maybeSortIcon("email")}
+            </Th>
+            <Th cursor="pointer" onClick={() => requestSort("title")}>
+              Title {maybeSortIcon("title")}
+            </Th>
+            <Th cursor="pointer" onClick={() => requestSort("phone")}>
+              Phone {maybeSortIcon("phone")}
+            </Th>
+            <Th cursor="pointer" onClick={() => requestSort("status")}>
+              Status {maybeSortIcon("status")}
+            </Th>
+            <Th>Actions</Th>
+          </Tr>
+        </Thead>
+        <Tbody>
+          {R.slice(startIndex, endIndex, sortedUsers).map((user) => (
+            <UserRow
+              key={`${user.id}-${user.email}`}
+              user={user}
+              deleteUser={deleteUser}
+            />
+          ))}
+        </Tbody>
+      </Table>
+      {paginationControls}
+    </Box>
   );
 };
 

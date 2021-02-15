@@ -6,7 +6,6 @@ export const initialAppState = {
 };
 
 const AppReducer = (state = initialAppState, action) => {
-  console.log("action.type = ", action.type, action);
   switch (action.type) {
     case "USERS_UPDATED":
       return {
