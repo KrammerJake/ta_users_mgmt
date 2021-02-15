@@ -23,6 +23,7 @@ const ConfirmDeleteDialog = ({ dialogHeader, onConfirmDeleteClick }) => {
         aria-label={dialogHeader}
         border="1px solid"
         icon={<DeleteIcon />}
+        _hover={{ bg: "red.600" }}
         onClick={() => setIsOpen(true)}
       />
 

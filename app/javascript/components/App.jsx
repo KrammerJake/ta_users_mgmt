@@ -1,29 +1,27 @@
 import { Box, Flex, Heading } from "@chakra-ui/react";
 import React, { useState, useEffect } from "react";
+import { connect } from "react-redux";
 import ax from "packs/axios";
-import * as R from "ramda";
+
 import UserTable from "./User/UserTable";
 import CreateUserButtonWithModal from "./Modals/CreateUserButtonWithModal";
 import LoadingSpinner from "./LoadingSpinner";
 
-const compareUpdatedAt = (a, b) => {
-  if (a.updated_at < b.updated_at) {
-    return 1;
-  }
-  if (a.updated_at > b.updated_at) {
-    return -1;
-  }
-  return 0;
-};
+import { usersUpdated } from "../redux/domains/App/AppActions";
 
-export default () => {
+const mapDispatchToProps = (dispatch) => ({
+  updateUsers: (users) => {
+    dispatch(usersUpdated(users));
+  },
+});
+
+const App = ({ updateUsers }) => {
   const [isLoadingUsers, setIsLoadingUsers] = useState(true);
-  const [users, setUsers] = useState([]);
 
   useEffect(async () => {
     try {
       const { data: users } = await ax.get("/users");
-      setUsers(users.sort(compareUpdatedAt));
+      updateUsers(users);
     } catch (e) {
       console.log("An error occurred while fetching users: ", e);
     } finally {
@@ -40,12 +38,14 @@ export default () => {
           <Box m={5} pt={50}>
             <Flex justifyContent="space-between" mx={6} mb={2}>
               <Heading>Users</Heading>
-              <CreateUserButtonWithModal users={users} setUsers={setUsers} />
+              <CreateUserButtonWithModal />
             </Flex>
-            <UserTable users={users} />
+            <UserTable />
           </Box>
         )}
       </Box>
     </Flex>
   );
 };
+
+export default connect(null, mapDispatchToProps)(App);

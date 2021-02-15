@@ -5,13 +5,17 @@
 import React from "react";
 import ReactDOM from "react-dom";
 import { ChakraProvider } from "@chakra-ui/react";
+import { Provider as ReduxStoreProvider } from "react-redux";
 import App from "../components/App";
+import { store } from "../redux/store";
 
 document.addEventListener("DOMContentLoaded", () => {
   ReactDOM.render(
-    <ChakraProvider>
-      <App />
-    </ChakraProvider>,
+    <ReduxStoreProvider store={store}>
+      <ChakraProvider>
+        <App />
+      </ChakraProvider>
+    </ReduxStoreProvider>,
     document.body.appendChild(document.createElement("div"))
   );
 });

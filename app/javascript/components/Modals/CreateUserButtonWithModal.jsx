@@ -17,16 +17,27 @@ import {
 } from "@chakra-ui/react";
 import ax from "packs/axios";
 import React, { useCallback, useState } from "react";
+import { connect } from "react-redux";
 import validator from "validator";
+import { userAdded } from "../../redux/domains/App/AppActions";
 
-const CreateUserButtonWithModal = ({ setUsers, users }) => {
+const mapStateToProps = (state) => ({
+  users: state.app.users,
+});
+
+const mapDispatchToProps = (dispatch) => ({
+  addUser: (user) => {
+    dispatch(userAdded(user));
+  },
+});
+
+const CreateUserButtonWithModal = ({ users, addUser }) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
-  const [title, setTitle] = useState("");
   const [phone, setPhone] = useState("");
-  const [status, setStatus] = useState("active"); // TODO: Allow user to add user as inactive?
+  const [title, setTitle] = useState("");
 
   const errorHelperTextColor = useColorModeValue("red.500", "red.300");
   const [showEmailHelperText, setShowEmailHelperText] = useState(false);
@@ -34,10 +45,9 @@ const CreateUserButtonWithModal = ({ setUsers, users }) => {
   const clearData = () => {
     setName("");
     setEmail("");
-    setTitle("");
     setPhone("");
+    setTitle("");
     setShowEmailHelperText(false);
-    setStatus("active");
   };
 
   const onSubmit = useCallback(async () => {
@@ -46,11 +56,11 @@ const CreateUserButtonWithModal = ({ setUsers, users }) => {
       const { data: newUser } = await ax.post("/users", {
         name,
         email,
-        title,
         phone,
-        status,
+        title,
+        status: 0,
       });
-      setUsers([newUser, ...users]);
+      addUser(newUser);
       setIsSubmitting(false);
       clearData();
       onClose();
@@ -59,16 +69,11 @@ const CreateUserButtonWithModal = ({ setUsers, users }) => {
       console.log("An error occurred while creating new user: ", e);
       setIsSubmitting(false);
     }
-  }, [name, email, title, phone, status, users]);
+  }, [name, email, phone, title, users]);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const canSubmit =
-    !isSubmitting &&
-    name &&
-    email &&
-    validator.isEmail(email) &&
-    phone &&
-    status;
+    !isSubmitting && name && email && validator.isEmail(email) && phone;
 
   const createUserForm = (
     <Box
@@ -110,16 +115,6 @@ const CreateUserButtonWithModal = ({ setUsers, users }) => {
           </FormHelperText>
         )}
       </FormControl>
-      <FormControl mt={2}>
-        <FormLabel htmlFor="title-input">Title</FormLabel>
-        <Input
-          id="title-input"
-          aria-label="Title"
-          onChange={({ target: { value } }) => setTitle(value)}
-          type="text"
-          value={title}
-        />
-      </FormControl>
       <FormControl mt={2} isRequired>
         <FormLabel htmlFor="phone-input">Phone</FormLabel>
         <Input
@@ -128,6 +123,16 @@ const CreateUserButtonWithModal = ({ setUsers, users }) => {
           onChange={({ target: { value } }) => setPhone(value)}
           type="text"
           value={phone}
+        />
+      </FormControl>
+      <FormControl mt={2}>
+        <FormLabel htmlFor="title-input">Title</FormLabel>
+        <Input
+          id="title-input"
+          aria-label="Title"
+          onChange={({ target: { value } }) => setTitle(value)}
+          type="text"
+          value={title}
         />
       </FormControl>
     </Box>
@@ -167,4 +172,7 @@ const CreateUserButtonWithModal = ({ setUsers, users }) => {
   );
 };
 
-export default CreateUserButtonWithModal;
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(CreateUserButtonWithModal);

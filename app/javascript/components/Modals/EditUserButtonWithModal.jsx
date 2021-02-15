@@ -20,20 +20,28 @@ import {
 } from "@chakra-ui/react";
 import ax from "packs/axios";
 import React, { useCallback, useState } from "react";
+import { connect } from "react-redux";
 import validator from "validator";
+import { userUpdated } from "../../redux/domains/App/AppActions";
+
+const mapDispatchToProps = (dispatch) => ({
+  updateUser: (userId, user) => {
+    dispatch(userUpdated(userId, user));
+  },
+});
 
 const STATUSES = {
   active: 0,
   inactive: 1,
 };
 
-const EditUserButtonWithModal = ({ user }) => {
+const EditUserButtonWithModal = ({ user, updateUser }) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
 
   const [name, setName] = useState(user.name);
   const [email, setEmail] = useState(user.email);
-  const [title, setTitle] = useState(user.title);
   const [phone, setPhone] = useState(user.phone);
+  const [title, setTitle] = useState(user.title);
   const [status, setStatus] = useState(STATUSES[user.status]);
 
   const errorHelperTextColor = useColorModeValue("red.500", "red.300");
@@ -45,12 +53,11 @@ const EditUserButtonWithModal = ({ user }) => {
       const { data: updatedUser } = await ax.put(`/users/${user.id}`, {
         name,
         email,
-        title,
         phone,
+        title,
         status,
       });
-      // TODO: dispatch message to update user in redux
-      console.log("updated user = ", updatedUser);
+      updateUser(user.id, updatedUser);
       setIsSubmitting(false);
       onClose();
     } catch (e) {
@@ -58,7 +65,7 @@ const EditUserButtonWithModal = ({ user }) => {
       console.log("An error occurred while creating new user: ", e);
       setIsSubmitting(false);
     }
-  }, [name, email, title, phone, status]);
+  }, [name, email, phone, title, status, updateUser]);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const hasChanges =
@@ -108,16 +115,6 @@ const EditUserButtonWithModal = ({ user }) => {
           </FormHelperText>
         )}
       </FormControl>
-      <FormControl mt={2}>
-        <FormLabel htmlFor="title-input">Title</FormLabel>
-        <Input
-          id="title-input"
-          aria-label="Title"
-          onChange={({ target: { value } }) => setTitle(value)}
-          type="text"
-          value={title}
-        />
-      </FormControl>
       <FormControl mt={2} isRequired>
         <FormLabel htmlFor="phone-input">Phone</FormLabel>
         <Input
@@ -126,6 +123,16 @@ const EditUserButtonWithModal = ({ user }) => {
           onChange={({ target: { value } }) => setPhone(value)}
           type="text"
           value={phone}
+        />
+      </FormControl>
+      <FormControl mt={2}>
+        <FormLabel htmlFor="title-input">Title</FormLabel>
+        <Input
+          id="title-input"
+          aria-label="Title"
+          onChange={({ target: { value } }) => setTitle(value)}
+          type="text"
+          value={title}
         />
       </FormControl>
       <FormControl mt={2} isRequired>
@@ -145,7 +152,12 @@ const EditUserButtonWithModal = ({ user }) => {
 
   return (
     <Box mr={2}>
-      <IconButton icon={<EditIcon />} onClick={onOpen} border="1px solid">
+      <IconButton
+        icon={<EditIcon />}
+        onClick={onOpen}
+        border="1px solid"
+        _hover={{ bg: "blue.600" }}
+      >
         Edit User
       </IconButton>
 
@@ -177,4 +189,4 @@ const EditUserButtonWithModal = ({ user }) => {
   );
 };
 
-export default EditUserButtonWithModal;
+export default connect(null, mapDispatchToProps)(EditUserButtonWithModal);
