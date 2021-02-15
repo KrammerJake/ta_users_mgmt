@@ -1,9 +1,11 @@
+import { EditIcon } from "@chakra-ui/icons";
 import {
   Box,
   Button,
   FormControl,
   FormHelperText,
   FormLabel,
+  IconButton,
   Input,
   Modal,
   ModalBody,
@@ -12,6 +14,7 @@ import {
   ModalFooter,
   ModalHeader,
   ModalOverlay,
+  Select,
   useColorModeValue,
   useDisclosure,
 } from "@chakra-ui/react";
@@ -19,58 +22,54 @@ import ax from "packs/axios";
 import React, { useCallback, useState } from "react";
 import validator from "validator";
 
-const CreateUserButtonWithModal = ({ setUsers, users }) => {
+const STATUSES = {
+  active: 0,
+  inactive: 1,
+};
+
+const EditUserButtonWithModal = ({ user }) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
 
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [title, setTitle] = useState("");
-  const [phone, setPhone] = useState("");
-  const [status, setStatus] = useState("active"); // TODO: Allow user to add user as inactive?
+  const [name, setName] = useState(user.name);
+  const [email, setEmail] = useState(user.email);
+  const [title, setTitle] = useState(user.title);
+  const [phone, setPhone] = useState(user.phone);
+  const [status, setStatus] = useState(STATUSES[user.status]);
 
   const errorHelperTextColor = useColorModeValue("red.500", "red.300");
   const [showEmailHelperText, setShowEmailHelperText] = useState(false);
 
-  const clearData = () => {
-    setName("");
-    setEmail("");
-    setTitle("");
-    setPhone("");
-    setShowEmailHelperText(false);
-    setStatus("active");
-  };
-
   const onSubmit = useCallback(async () => {
     setIsSubmitting(true);
     try {
-      const { data: newUser } = await ax.post("/users", {
+      const { data: updatedUser } = await ax.put(`/users/${user.id}`, {
         name,
         email,
         title,
         phone,
         status,
       });
-      setUsers([newUser, ...users]);
+      // TODO: dispatch message to update user in redux
+      console.log("updated user = ", updatedUser);
       setIsSubmitting(false);
-      clearData();
       onClose();
     } catch (e) {
       // TODO: Detect submission failure due to duplicate email, respond accordingly
       console.log("An error occurred while creating new user: ", e);
       setIsSubmitting(false);
     }
-  }, [name, email, title, phone, status, users]);
+  }, [name, email, title, phone, status]);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const canSubmit =
-    !isSubmitting &&
-    name &&
-    email &&
-    validator.isEmail(email) &&
-    phone &&
-    status;
+  const hasChanges =
+    name !== user.name ||
+    email !== user.email ||
+    phone !== user.phone ||
+    title !== user.title ||
+    status !== STATUSES[user.status];
+  const canSubmit = !isSubmitting && hasChanges && validator.isEmail(email);
 
-  const createUserForm = (
+  const editUserForm = (
     <Box
       display="flex"
       flexDirection="column"
@@ -84,7 +83,6 @@ const CreateUserButtonWithModal = ({ setUsers, users }) => {
       <FormControl isRequired>
         <FormLabel htmlFor="name-input">Name</FormLabel>
         <Input
-          autoFocus
           id="name-input"
           aria-label="Name"
           onChange={({ target: { value } }) => setName(value)}
@@ -130,32 +128,44 @@ const CreateUserButtonWithModal = ({ setUsers, users }) => {
           value={phone}
         />
       </FormControl>
+      <FormControl mt={2} isRequired>
+        <FormLabel htmlFor="user-status-select">Status</FormLabel>
+        <Select
+          onChange={({ target: { value } }) => setStatus(parseInt(value, 10))}
+          bg={status === STATUSES.active ? "green.600" : "red.800"}
+          color="white"
+          value={status}
+        >
+          <option value={0}>Active</option>
+          <option value={1}>Inactive</option>
+        </Select>
+      </FormControl>
     </Box>
   );
 
   return (
-    <>
-      <Button colorScheme="green" onClick={onOpen}>
-        Add User
-      </Button>
+    <Box mr={2}>
+      <IconButton icon={<EditIcon />} onClick={onOpen} border="1px solid">
+        Edit User
+      </IconButton>
 
       <Modal isOpen={isOpen} onClose={onClose}>
         <ModalOverlay />
         <ModalContent>
-          <ModalHeader>Add New User</ModalHeader>
+          <ModalHeader>Update User</ModalHeader>
           <ModalCloseButton />
-          <ModalBody>{createUserForm}</ModalBody>
+          <ModalBody>{editUserForm}</ModalBody>
 
           <ModalFooter>
             <Button
               isLoading={isSubmitting}
               disabled={!canSubmit}
-              loadingText="Creating user"
+              loadingText="Updating user"
               colorScheme="green"
               mr={3}
               onClick={onSubmit}
             >
-              Add User
+              Update User
             </Button>
             <Button colorScheme="blue" mr={3} onClick={onClose}>
               Close
@@ -163,8 +173,8 @@ const CreateUserButtonWithModal = ({ setUsers, users }) => {
           </ModalFooter>
         </ModalContent>
       </Modal>
-    </>
+    </Box>
   );
 };
 
-export default CreateUserButtonWithModal;
+export default EditUserButtonWithModal;

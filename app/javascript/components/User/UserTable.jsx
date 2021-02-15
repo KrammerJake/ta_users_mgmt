@@ -1,18 +1,20 @@
-import { EditIcon, DeleteIcon } from "@chakra-ui/icons";
-import {
-  Flex,
-  IconButton,
-  Table,
-  Tbody,
-  Td,
-  Th,
-  Thead,
-  Tr,
-} from "@chakra-ui/react";
+import { Badge, Flex, Table, Tbody, Td, Th, Thead, Tr } from "@chakra-ui/react";
 import { formatDistance } from "date-fns";
-import React from "react";
+import React, { useCallback } from "react";
+import ax from "packs/axios";
+import ConfirmDeleteDialog from "../Dialogs/ConfirmDeleteDialog";
+import EditUserButtonWithModal from "../Modals/EditUserButtonWithModal";
 
 const UserRow = ({ user }) => {
+  const onConfirmDelete = useCallback(async () => {
+    try {
+      await ax.delete(`/users/${user.id}`);
+      // TODO: dispatch message to delete user in redux
+    } catch (e) {
+      console.log("An error occurred while deleting user: ", e);
+    }
+  }, [user]);
+
   const { name, email, phone, title, status, updated_at } = user;
   return (
     <Tr>
@@ -21,16 +23,21 @@ const UserRow = ({ user }) => {
       <Td>{email}</Td>
       <Td>{title}</Td>
       <Td>{phone}</Td>
-      <Td color={status === "active" ? "green.500" : "red.500"}>{status}</Td>
+      <Td>
+        <Badge
+          colorScheme={status === "active" ? "green" : "red"}
+          p={1}
+          borderRadius={5}
+        >
+          {status}
+        </Badge>
+      </Td>
       <Td>
         <Flex>
-          <IconButton aria-label="Edit user" size="md" icon={<EditIcon />} />
-          <IconButton
-            ml={2}
-            colorScheme="red"
-            aria-label="Delete user"
-            size="md"
-            icon={<DeleteIcon />}
+          <EditUserButtonWithModal user={user} />
+          <ConfirmDeleteDialog
+            dialogHeader={`Delete ${email}`}
+            onConfirmDeleteClick={onConfirmDelete}
           />
         </Flex>
       </Td>

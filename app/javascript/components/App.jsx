@@ -37,7 +37,7 @@ export default () => {
         {isLoadingUsers ? (
           <LoadingSpinner message="Loading users" />
         ) : (
-          <Box m={5}>
+          <Box m={5} pt={50}>
             <Flex justifyContent="space-between" mx={6} mb={2}>
               <Heading>Users</Heading>
               <CreateUserButtonWithModal users={users} setUsers={setUsers} />
