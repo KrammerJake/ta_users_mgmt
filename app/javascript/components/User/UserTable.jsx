@@ -5,16 +5,19 @@ import {
   Table,
   TableCaption,
   Tbody,
+  Td,
   Th,
   Thead,
   Tr,
 } from "@chakra-ui/react";
+import { formatDistance } from "date-fns";
 import React from "react";
 
-const UserRow = ({ name, email, phone, title, status, updated_at }) => {
+const UserRow = ({ user }) => {
+  const { id, name, email, phone, title, status, updated_at } = user;
   return (
-    <Tr>
-      <Td>{new Date(updated_at)}</Td>
+    <Tr key={id}>
+      <Td>{formatDistance(new Date(updated_at), new Date())}</Td>
       <Td>{name}</Td>
       <Td>{email}</Td>
       <Td>{title}</Td>
@@ -25,14 +28,14 @@ const UserRow = ({ name, email, phone, title, status, updated_at }) => {
           <IconButton
             colorScheme="teal"
             aria-label="Edit user"
-            size="lg"
+            size="md"
             icon={<EditIcon />}
           />
           <IconButton
             ml={2}
             colorScheme="red"
             aria-label="Delete user"
-            size="lg"
+            size="md"
             icon={<DeleteIcon />}
           />
         </Flex>
@@ -44,7 +47,6 @@ const UserRow = ({ name, email, phone, title, status, updated_at }) => {
 const UserTable = ({ users }) => {
   return (
     <Table variant="simple">
-      <TableCaption>Imperial to metric conversion factors</TableCaption>
       <Thead>
         <Tr>
           <Th>Last Updated</Th>

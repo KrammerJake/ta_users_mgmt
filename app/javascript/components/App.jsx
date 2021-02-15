@@ -1,30 +1,40 @@
-import { Box, Flex, Heading } from "@chakra-ui/react";
+import { Box, Flex, Heading, HStack, Spacer, Text } from "@chakra-ui/react";
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import UserStatsHeader from "./User/UserStatsHeader";
 import UserTable from "./User/UserTable";
+import CreateUserButtonWithModal from "./Modals/CreateUserButtonWithModal";
+import LoadingSpinner from "./LoadingSpinner";
 
 export default () => {
+  const [isLoadingUsers, setIsLoadingUsers] = useState(true);
   const [users, setUsers] = useState([]);
 
   useEffect(async () => {
     try {
-      const response = await axios.get("/api/v1/users");
-      console.log("response = ", response);
-      // setUsers(users);
+      const { data: users } = await axios.get("/users");
+      setUsers(users);
     } catch (e) {
       console.log("An error occurred while fetching users: ", e);
+    } finally {
+      setIsLoadingUsers(false);
     }
   }, []);
 
   return (
     <Flex flexDir="column">
-      <UserStatsHeader totalUsers={1000} />
-      <Box display="grid" placeItems="center" h="100%">
-        <Heading>Users</Heading>
-        <Box m={5}>
-          <UserTable users={users} />
-        </Box>
+      <Box display="grid" placeItems="center" h="100vh">
+        {isLoadingUsers ? (
+          <LoadingSpinner message="Loading users" />
+        ) : (
+          <Box m={5}>
+            <Flex justifyContent="space-between" mx={6}>
+              <Heading>Users</Heading>
+              <CreateUserButtonWithModal />
+            </Flex>
+            <UserTable users={users} />
+          </Box>
+        )}
       </Box>
     </Flex>
   );
