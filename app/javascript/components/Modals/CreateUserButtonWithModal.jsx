@@ -20,22 +20,36 @@ import React, { useCallback, useState } from "react";
 import validator from "validator";
 
 const CreateUserButtonWithModal = () => {
+  const { isOpen, onOpen, onClose } = useDisclosure();
+
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [title, setTitle] = useState("");
   const [phone, setPhone] = useState("");
-  const [status, setStatus] = useState("active");
+  const [status, setStatus] = useState("active"); // TODO: Allow user to add user as inactive?
 
   const errorHelperTextColor = useColorModeValue("red.500", "red.300");
   const [showEmailHelperText, setShowEmailHelperText] = useState(false);
+
+  const clearData = () => {
+    setName("");
+    setEmail("");
+    setTitle("");
+    setPhone("");
+    setShowEmailHelperText(false);
+    setStatus("active");
+  };
 
   const onSubmit = useCallback(async () => {
     setIsSubmitting(true);
     try {
       await ax.post("/users", { name, email, title, phone, status });
+      setIsSubmitting(false);
+      clearData();
+      onClose();
     } catch (e) {
+      // TODO: Detect submission failure due to duplicate email, respond accordingly
       console.log("An error occurred while creating new user: ", e);
-    } finally {
       setIsSubmitting(false);
     }
   }, [name, email, title, phone, status]);
@@ -111,8 +125,6 @@ const CreateUserButtonWithModal = () => {
       </FormControl>
     </Box>
   );
-
-  const { isOpen, onOpen, onClose } = useDisclosure();
 
   return (
     <>

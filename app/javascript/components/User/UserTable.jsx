@@ -3,7 +3,6 @@ import {
   Flex,
   IconButton,
   Table,
-  TableCaption,
   Tbody,
   Td,
   Th,
@@ -14,9 +13,9 @@ import { formatDistance } from "date-fns";
 import React from "react";
 
 const UserRow = ({ user }) => {
-  const { id, name, email, phone, title, status, updated_at } = user;
+  const { name, email, phone, title, status, updated_at } = user;
   return (
-    <Tr key={id}>
+    <Tr>
       <Td>{formatDistance(new Date(updated_at), new Date())}</Td>
       <Td>{name}</Td>
       <Td>{email}</Td>
