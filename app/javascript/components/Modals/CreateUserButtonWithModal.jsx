@@ -15,7 +15,7 @@ import {
   useColorModeValue,
   useDisclosure,
 } from "@chakra-ui/react";
-import axios from "axios";
+import ax from "packs/axios";
 import React, { useCallback, useState } from "react";
 import validator from "validator";
 
@@ -32,13 +32,13 @@ const CreateUserButtonWithModal = () => {
   const onSubmit = useCallback(async () => {
     setIsSubmitting(true);
     try {
-      await axios.post("/users", { name, email, title, phone, status });
+      await ax.post("/users", { name, email, title, phone, status });
     } catch (e) {
       console.log("An error occurred while creating new user: ", e);
     } finally {
       setIsSubmitting(false);
     }
-  }, []);
+  }, [name, email, title, phone, status]);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const canSubmit =

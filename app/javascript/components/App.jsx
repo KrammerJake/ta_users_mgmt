@@ -1,7 +1,6 @@
 import { Box, Flex, Heading, HStack, Spacer, Text } from "@chakra-ui/react";
 import React, { useState, useEffect } from "react";
-import axios from "axios";
-import UserStatsHeader from "./User/UserStatsHeader";
+import ax from "packs/axios";
 import UserTable from "./User/UserTable";
 import CreateUserButtonWithModal from "./Modals/CreateUserButtonWithModal";
 import LoadingSpinner from "./LoadingSpinner";
@@ -12,7 +11,7 @@ export default () => {
 
   useEffect(async () => {
     try {
-      const { data: users } = await axios.get("/users");
+      const { data: users } = await ax.get("/users");
       setUsers(users);
     } catch (e) {
       console.log("An error occurred while fetching users: ", e);

@@ -60,7 +60,7 @@ const UserTable = ({ users }) => {
       </Thead>
       <Tbody>
         {users.map((user) => (
-          <UserRow user={user} />
+          <UserRow key={user.id} user={user} />
         ))}
       </Tbody>
     </Table>
