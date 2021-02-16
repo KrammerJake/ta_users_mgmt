@@ -34,3 +34,10 @@ export const sortPropUpdated = (sortProp) => {
     sortProp,
   };
 };
+
+export const searchQueryUpdated = (searchQuery) => {
+  return {
+    type: "SEARCH_QUERY_UPDATED",
+    searchQuery,
+  };
+};

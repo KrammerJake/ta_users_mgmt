@@ -11,6 +11,7 @@ import {
   Th,
   Thead,
   Tr,
+  useColorModeValue,
 } from "@chakra-ui/react";
 import { formatDistance } from "date-fns";
 import * as R from "ramda";
@@ -28,6 +29,7 @@ const getSortArrowIcon = (direction) => {
 
 const mapStateToProps = (state) => ({
   users: state.app.users,
+  searchQuery: state.app.searchQuery,
 });
 const mapDispatchToProps = (dispatch) => ({
   deleteUser: (userId) => dispatch(userDeleted(userId)),
@@ -45,12 +47,14 @@ const UserRow = ({ user, deleteUser }) => {
 
   const { name, email, phone, title, status, updated_at } = user;
 
+  const hoverBgColor = useColorModeValue("gray.200", "gray.700");
+
   const lastUpdatedString = formatDistance(new Date(updated_at), new Date());
   const recentlyUpdated = lastUpdatedString === "less than a minute";
   return (
     <Tr
       borderLeft={recentlyUpdated ? "4px solid green" : undefined}
-      _hover={{ bg: "gray.700" }}
+      _hover={{ bg: hoverBgColor }}
     >
       <Td>{lastUpdatedString}</Td>
       <Td>{name}</Td>
@@ -84,7 +88,7 @@ const DEFAULT_SORT_CONFIG = {
   direction: "descending",
 };
 
-const UserTable = ({ users, deleteUser }) => {
+const UserTable = ({ users, deleteUser, searchQuery }) => {
   const [sortConfig, setSortConfig] = useState(DEFAULT_SORT_CONFIG);
   const [page, setPage] = useState(1);
   const perPage = 25;
@@ -100,8 +104,20 @@ const UserTable = ({ users, deleteUser }) => {
     setSortConfig({ key, direction });
   };
 
+  const filteredUsers = useMemo(() => {
+    const loweredQuery = R.toLower(searchQuery);
+    return R.filter(
+      ({ name, email, phone, title }) =>
+        R.toLower(name).includes(loweredQuery) ||
+        R.toLower(email).includes(loweredQuery) ||
+        R.toLower(phone).includes(loweredQuery) ||
+        R.toLower(title).includes(loweredQuery),
+      users
+    );
+  }, [users, searchQuery]);
+
   const sortedUsers = useMemo(() => {
-    let sortedUsers = [...users];
+    let sortedUsers = [...filteredUsers];
     if (sortConfig.key !== null) {
       sortedUsers.sort((a, b) => {
         if (a[sortConfig.key] < b[sortConfig.key]) {
@@ -114,7 +130,7 @@ const UserTable = ({ users, deleteUser }) => {
       });
     }
     return sortedUsers;
-  }, [users, sortConfig]);
+  }, [filteredUsers, sortConfig]);
 
   const maybeSortIcon = (sortProp) => {
     if (sortProp === sortConfig.key) {
@@ -124,8 +140,7 @@ const UserTable = ({ users, deleteUser }) => {
   };
 
   const paginationControls = (
-    <Flex flexDir="column" alignItems="center" justifyContent="center" my={1}>
-      <Text>Page {page}</Text>
+    <Flex alignItems="center" justifyContent="center" my={2}>
       <HStack spacing={5}>
         <Button
           disabled={page === 1}
@@ -133,6 +148,7 @@ const UserTable = ({ users, deleteUser }) => {
         >
           Prev
         </Button>
+        <Text>Page {page}</Text>
         <Button
           disabled={page === lastPage}
           onClick={page < lastPage ? () => setPage(page + 1) : undefined}
@@ -148,7 +164,6 @@ const UserTable = ({ users, deleteUser }) => {
 
   return (
     <Box pb={20}>
-      {paginationControls}
       <Table>
         <Thead>
           <Tr>

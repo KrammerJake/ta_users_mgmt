@@ -140,7 +140,7 @@ const CreateUserButtonWithModal = ({ users, addUser }) => {
 
   return (
     <>
-      <Button colorScheme="green" onClick={onOpen}>
+      <Button ml={4} colorScheme="green" onClick={onOpen}>
         Add User
       </Button>
 

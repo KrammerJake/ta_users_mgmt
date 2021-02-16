@@ -1,8 +1,9 @@
 import * as R from "ramda";
 
 export const initialAppState = {
-  users: [],
+  searchQuery: "",
   sortProp: "updated_at",
+  users: [],
 };
 
 const AppReducer = (state = initialAppState, action) => {
@@ -35,6 +36,11 @@ const AppReducer = (state = initialAppState, action) => {
       return {
         ...state,
         sortProp: action.sortProp,
+      };
+    case "SEARCH_QUERY_UPDATED":
+      return {
+        ...state,
+        searchQuery: action.searchQuery,
       };
     default:
       return state;

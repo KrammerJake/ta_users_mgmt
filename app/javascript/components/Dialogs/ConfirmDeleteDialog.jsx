@@ -8,6 +8,7 @@ import {
   AlertDialogOverlay,
   Button,
   IconButton,
+  useColorModeValue,
 } from "@chakra-ui/react";
 import React from "react";
 
@@ -17,13 +18,15 @@ const ConfirmDeleteDialog = ({ dialogHeader, onConfirmDeleteClick }) => {
 
   const cancelRef = React.useRef();
 
+  const editIconHoverBgColor = useColorModeValue("red.300", "red.600");
+
   return (
     <>
       <IconButton
         aria-label={dialogHeader}
         border="1px solid"
         icon={<DeleteIcon />}
-        _hover={{ bg: "red.600" }}
+        _hover={{ bg: editIconHoverBgColor }}
         onClick={() => setIsOpen(true)}
       />
 

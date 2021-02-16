@@ -1,5 +1,13 @@
-import { Box, Flex, Heading } from "@chakra-ui/react";
-import React, { useState, useEffect } from "react";
+import {
+  Box,
+  Flex,
+  Heading,
+  IconButton,
+  Input,
+  useColorMode,
+  useColorModeValue,
+} from "@chakra-ui/react";
+import React, { useState, useEffect, useCallback } from "react";
 import { connect } from "react-redux";
 import ax from "packs/axios";
 
@@ -7,16 +15,43 @@ import UserTable from "./User/UserTable";
 import CreateUserButtonWithModal from "./Modals/CreateUserButtonWithModal";
 import LoadingSpinner from "./LoadingSpinner";
 
-import { usersUpdated } from "../redux/domains/App/AppActions";
+import {
+  usersUpdated,
+  searchQueryUpdated,
+} from "../redux/domains/App/AppActions";
+import { MoonIcon, SunIcon } from "@chakra-ui/icons";
+
+const mapStateToProps = (state) => ({
+  searchQuery: state.app.searchQuery,
+});
 
 const mapDispatchToProps = (dispatch) => ({
+  updateSearchQuery: (searchQuery) => {
+    dispatch(searchQueryUpdated(searchQuery));
+  },
   updateUsers: (users) => {
     dispatch(usersUpdated(users));
   },
 });
 
-const App = ({ updateUsers }) => {
+const App = ({ searchQuery, updateUsers, updateSearchQuery }) => {
+  // TODO: move to redux?
   const [isLoadingUsers, setIsLoadingUsers] = useState(true);
+
+  const { toggleColorMode } = useColorMode();
+  const themeIcon = useColorModeValue(<SunIcon />, <MoonIcon />);
+
+  const changeThemeButton = (
+    <IconButton
+      ml={2}
+      variant="ghost"
+      size="lg"
+      aria-label="Change theme"
+      id="toggle-theme-button"
+      icon={themeIcon}
+      onClick={toggleColorMode}
+    />
+  );
 
   useEffect(async () => {
     try {
@@ -36,9 +71,20 @@ const App = ({ updateUsers }) => {
           <LoadingSpinner message="Loading users" />
         ) : (
           <Box m={5} pt={50}>
-            <Flex justifyContent="space-between" mx={6} mb={2}>
-              <Heading>Users</Heading>
-              <CreateUserButtonWithModal />
+            <Flex justifyContent="space-between" mx={6} mb={6}>
+              <Heading as="h1" size="2xl">
+                Users {changeThemeButton}
+              </Heading>
+              <Flex alignItems="center">
+                <Input
+                  placeholder="Search users"
+                  onChange={({ target: { value } }) => {
+                    updateSearchQuery(value);
+                  }}
+                  value={searchQuery}
+                />
+                <CreateUserButtonWithModal />
+              </Flex>
             </Flex>
             <UserTable />
           </Box>
@@ -48,4 +94,4 @@ const App = ({ updateUsers }) => {
   );
 };
 
-export default connect(null, mapDispatchToProps)(App);
+export default connect(mapStateToProps, mapDispatchToProps)(App);

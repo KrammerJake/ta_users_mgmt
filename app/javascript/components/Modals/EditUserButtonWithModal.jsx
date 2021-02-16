@@ -150,13 +150,15 @@ const EditUserButtonWithModal = ({ user, updateUser }) => {
     </Box>
   );
 
+  const editIconHoverBgColor = useColorModeValue("blue.300", "blue.600");
+
   return (
     <Box mr={2}>
       <IconButton
         icon={<EditIcon />}
         onClick={onOpen}
         border="1px solid"
-        _hover={{ bg: "blue.600" }}
+        _hover={{ bg: editIconHoverBgColor }}
       >
         Edit User
       </IconButton>
