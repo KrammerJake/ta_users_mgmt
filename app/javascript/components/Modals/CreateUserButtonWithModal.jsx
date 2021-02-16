@@ -40,6 +40,9 @@ const CreateUserButtonWithModal = ({ users, addUser }) => {
   const [title, setTitle] = useState("");
 
   const errorHelperTextColor = useColorModeValue("red.500", "red.300");
+  const [emailHelperText, setEmailHelperText] = useState(
+    "Must be a valid email"
+  );
   const [showEmailHelperText, setShowEmailHelperText] = useState(false);
 
   const clearData = () => {
@@ -48,25 +51,33 @@ const CreateUserButtonWithModal = ({ users, addUser }) => {
     setPhone("");
     setTitle("");
     setShowEmailHelperText(false);
+    setEmailHelperText("Must be a valid email");
   };
 
   const onSubmit = useCallback(async () => {
     setIsSubmitting(true);
     try {
-      const { data: newUser } = await ax.post("/users", {
+      const result = await ax.post("/users", {
         name,
         email,
         phone,
         title,
         status: 0,
       });
+      const { data: newUser } = result;
       addUser(newUser);
       setIsSubmitting(false);
       clearData();
       onClose();
-    } catch (e) {
-      // TODO: Detect submission failure due to duplicate email, respond accordingly
-      console.log("An error occurred while creating new user: ", e);
+    } catch (axResponse) {
+      if (
+        axResponse.response.status === 422 &&
+        axResponse.response.data.email &&
+        axResponse.response.data.email[0] === "has already been taken"
+      ) {
+        setShowEmailHelperText(true);
+        setEmailHelperText("Email is already taken");
+      }
       setIsSubmitting(false);
     }
   }, [name, email, phone, title, users]);
@@ -111,7 +122,7 @@ const CreateUserButtonWithModal = ({ users, addUser }) => {
         />
         {showEmailHelperText && (
           <FormHelperText color={errorHelperTextColor}>
-            Must be a valid email
+            {emailHelperText}
           </FormHelperText>
         )}
       </FormControl>
